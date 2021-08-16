@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="guoy8 cute" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="guoy8 cute">
+        <serverdata>
+          <mappings>
+            <mapping deploy="waffle-removal-main" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="kosh">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/waffle-removal-main" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

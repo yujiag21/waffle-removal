@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="triton.aalto.fi" id="556a1062-4afc-41f5-abf9-44d048904069" port="22" nameFormat="DESCRIPTIVE" username="guoy8" />
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="kosh.aalto.fi" id="5db76040-b183-4fbb-af9c-90edfd3681c9" port="22" nameFormat="DESCRIPTIVE" username="guoy8" />
+    </configs>
+  </component>
+</project>
