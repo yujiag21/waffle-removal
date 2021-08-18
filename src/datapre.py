@@ -379,15 +379,16 @@ def download_traindata(dataset_name: str, data_path: str, transformations: Dict[
     elif dataset_name == "CINIC10":
         dataset = dh.CINIC10
     elif dataset_name == "FEMNIST":
-        dataset = dh.FEMNIST
+        dataset = None
     else:
         raise ValueError(dataset_name)
-    if dataset_name == "MNIST" or dataset_name == "CIFAR10" or dataset_name == "FEMNIST":
+
+    if dataset_name == "MNIST" or dataset_name == "CIFAR10":
         train_set = dataset(data_path, train=True, transform=transformations["train"], download=True)
         test_set = dataset(data_path, train=False, transform=transformations["val"], download=True)
-    elif dataset_name == "CINIC10":
+    elif dataset_name == "CINIC10" or dataset_name == "FEMNIST":
         train_set = tv.datasets.ImageFolder(data_path + '/train',transform=transformations["train"])
-        test_set = tv.datasets.ImageFolder(data_path + '/train',transform=transformations["val"])
+        test_set = tv.datasets.ImageFolder(data_path + '/test',transform=transformations["val"])
 
 
     log.info("Training ({}) samples: {}\nTest samples: {}\nSaved in: {}".format(dataset_name, len(train_set), len(test_set), data_path))
