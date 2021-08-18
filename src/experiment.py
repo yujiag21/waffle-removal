@@ -281,6 +281,9 @@ class ExperimentTraining(Experiment):
         y_target_list = list(range(self.number_of_classes))
         pattern_list = []
         mask_list = []
+
+        pattern_numpy_list = []
+        mask_numpy_list = []
         # print('pre_pattern_list ',pre_pattern_list,'pre_mask_list ',pre_mask_list,'/n')
         for y_target, pre_pattern, pre_mask in zip(y_target_list, pre_pattern_list, pre_mask_list):
 
@@ -301,12 +304,16 @@ class ExperimentTraining(Experiment):
             print('visualization cost %f seconds' % (visualize_end_time - visualize_start_time))
             log_mapping[y_target] = logs
 
-            pattern_numpy = pattern.cpu().numpy()
-            mask_numpy = mask.cpu().numpy()
-            # if you want to save patterns, then comment out the below line
-            # save_pattern(pattern_numpy, mask_numpy, y_target, n_adversaries, self.model_name, repeat, self.model_architecture + '_visualize_%s_label_%d.png')
             pattern_list.append(pattern)
             mask_list.append(mask)
+
+            pattern_numpy = pattern.cpu().numpy()
+            mask_numpy = mask.cpu().numpy()
+            pattern_numpy_list.append(pattern_numpy)
+            mask_numpy_list.append(mask_numpy)
+
+            # if you want to save patterns, then comment out the below line
+            # save_pattern(pattern_numpy, mask_numpy, y_target, n_adversaries, self.model_name, repeat, self.model_architecture + '_visualize_%s_label_%d.png')
 
         # pre_pattern_list = copy.deepcopy(pattern_list)
         # pre_mask_list = copy.deepcopy(mask_list)
@@ -355,7 +362,7 @@ class ExperimentTraining(Experiment):
                         loss = nn.CrossEntropyLoss()(output, local_target)
                     loss.backward()
                     client_optimizer.step()
-                    train_loss += loss.item() / (
+                    train_loss += loss.get() / (
                                 len(test_generator[client_i].dataset) * self.training_ops.local_epoch)
 
                 # Calculate test acc and watermark score after each epoch
@@ -392,7 +399,7 @@ class ExperimentTraining(Experiment):
             detector_optimizer = torch.optim.SGD(params=detector_model.parameters(), lr=0.01)
 
         log.info('Finished neural cleanse attack.')
-        return client_model, pattern_list, mask_list
+        return client_model, pattern_numpy_list, mask_numpy_list
 
     def visualize_trigger_w_mask(self, client_model: nn.Module, client, client_i,
                                  pre_pattern, pre_mask,
@@ -506,6 +513,8 @@ class ExperimentTraining(Experiment):
 
             # check to save best mask or not
             if avg_loss_acc >= self.attack_succ_threshold and avg_loss_reg < reg_best:
+                print('pattern_best ', pattern_best)
+
                 mask_best = mask_raw_tensor.detach()
                 mask_best = mask_best[0, :, :]
                 # meta data about the generated mask
@@ -752,7 +761,6 @@ class ExperimentTraining(Experiment):
         local_test_accuracies = [0 for i in range(self.client_num)]
 
         if self.neural_cleanse_remove == 1:
-            federated_train_loader = train_loader_nowatermark
             pre_pattern_list=[]
             pre_mask_list=[]
             for i in range(self.number_of_classes):
@@ -779,6 +787,8 @@ class ExperimentTraining(Experiment):
                 #         file.write(
                 #             'Epoch:{}, poison after 90% of the training time\n'.format(
                 #                 epoch + 1))
+            else:
+                federated_train_loader = train_loader_nowatermark
 
 
             # updated_wi is set to zero in before starting to every epoch
@@ -857,7 +867,8 @@ class ExperimentTraining(Experiment):
                 local_test_accuracies[client_i] = self.test_local_model(client_model, self.local_test_loader, client_i)
 
                 # Print GPU usage to check if there is a memory leak
-                print('GPU usage {}'.format(torch.cuda.memory_allocated()))
+                if self.use_cuda:
+                    print('GPU usage {}'.format(torch.cuda.memory_allocated()))
                 # Move function send client model parameters to aggregator (secure worker)
                 client_model.move(secure_worker)
                 updated_w = updateWeight.calculate_weight(updated_w, self.real_client_num, self.client_num,
@@ -882,7 +893,8 @@ class ExperimentTraining(Experiment):
                         train_losses[client_i], train_accuracies[client_i], watermark_accuracies[client_i], local_test_accuracies[client_i]))
 
                 del client_model
-                torch.cuda.empty_cache()
+                if self.use_cuda:
+                    torch.cuda.empty_cache()
 
 
             # Receive data in bytes from secure worker to central server
